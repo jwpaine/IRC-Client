@@ -11,11 +11,37 @@ var nickname = "my_nick";
 var realname = "my_realname";
 var version = "Custom 1.0";
 
-var Server = function (address, port) {
+var Server = function (address, port, socket) {
     this._address = address;
     this._port = port;
+    this._socket  = socket;
 };
 
+Server.prototype.send = function(message) {
+	/* if command */
+	if (message[0]=="/") {
+		/* slice off '/' and split into array of strings */
+		var data = message.slice(1).split(" ")
+		/* check command */
+		if (data[0] == "msg") {
+			/* convert into a foreach */
+			var msg = "PRIVMSG "+data[1]+" :";
+			for (var i = 2; i < data.length; i++) {
+				msg += data[i];
+			};
+
+			console.log("sending:"+msg);
+			this._socket.write(msg+"\r\n");
+		} else {
+		/* not msg */
+			var msg = message.slice(1, message.length);
+			console.log("sending:"+msg);
+			this._socket.write(msg+"\r\n");
+		}
+
+		
+	};
+}
 Server.prototype.connect = function () {
     console.log('Connecting to IRC server: ' + this._address + " on port " + this._port);
     	/* call server.connect export, passing reference to 
@@ -35,9 +61,14 @@ Server.prototype.connect = function () {
 };
 
 /* create server object and connect */
-var s1 = new Server("irc.freenode.com", 6667);
+var s1 = new Server("irc.freenode.com", 6667, null);
 s1.connect();
- 
-/* var s2 = new Server("irc.efnet.us", 6667);
-s2.connect();
-*/
+
+	/* provide basic CLI for user input */
+rl.on('line', (line) => {
+	var input = line.trim();
+	s1.send(line);
+  	rl.prompt();
+});
+
+

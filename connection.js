@@ -10,7 +10,15 @@ exports.connect = function(server, nickname, realname, callback) {
 		/* send NICK / USER handshake */	
 		socket.write("NICK "+nickname+"\r\n");
 		socket.write("USER "+nickname+" * * :"+realname+"\r\n");
-		callback(socket);
+		/* record socket */	
+		server._socket = socket;	
+
+		callback(socket); 
+	});
+
+	socket.on('error', function(err){
+	    console.log("encountered Error: "+err.message);
+	    return;
 	});
 	
       	socket.on('data', function(data) {
